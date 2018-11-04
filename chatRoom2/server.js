@@ -64,16 +64,32 @@ app.on('error', function (err) {
  * 使用socket.io
  */
 // 监听服务端和客户端的连接情况
+let username = "";
+const SYSTEM = '系统';
+
 io.on('connection', function (socket) {
   // 监听客户端发来的消息
-  socket.on('message', function (msg) {
-    console.log(`来自客户端的消息：${msg}`);   // 这个就是客户端发来的消息
-    // io.emit()方法是向大厅和所有人房间内的人广播
-    io.emit('message', {
-      user: '系统',
-      content: msg,
-      createAt: new Date().toLocaleString()
-    });
+  socket.on('message', function (data) {
+    console.log(`来自客户端的消息：${data.msg}`);   // 这个就是客户端发来的消息
+    if (username) {
+      // io.emit()方法是向大厅和所有人房间内的人广播
+      io.emit('message', {
+        user: data.username,
+        content: data.msg,
+        createAt: new Date().toLocaleString()
+      });
+    } else {
+      // 向除了自己的所有人广播，毕竟进没进入自己是知道的，没必要跟自己再说一遍
+      socket.broadcast.emit('message', {
+        user: SYSTEM,
+        content: `${username}加入了聊天！`,
+        createAt: new Date().toLocaleString()
+      });
+    }
+  });
+
+  socket.on('username', function (msg) {
+    username = msg;
   });
 });
 

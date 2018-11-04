@@ -17,6 +17,9 @@ usernameConfirmBtn.addEventListener("click", () => {
   let val = username.value;
   if (val) {
     usernameVal = val;
+
+    socket.emit("username", val);
+
     $("#myModal").modal('hide');
   } else {
     alert("用户名不可为空！");
@@ -33,7 +36,10 @@ const handleSend = () => {
   let val = input.value;
   if (val) {
     // socket.send(val);
-    socket.emit('message', val);
+    socket.emit('message', {
+      username: usernameVal,
+      msg: val
+    });
     input.value = "";
   } else {
     alert("发送内容不能为空！")
