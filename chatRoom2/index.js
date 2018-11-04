@@ -9,7 +9,7 @@ socket.on('connect', () => {
   console.log('连接成功');
 })
 
-sendBtn.addEventListener("click", () => {
+const handleSend = () => {
   let val = input.value;
   if (val) {
     // socket.send(val);
@@ -17,5 +17,15 @@ sendBtn.addEventListener("click", () => {
     input.value = "";
   } else {
     alert("发送内容不能为空！")
+  }
+}
+
+sendBtn.addEventListener("click", handleSend);
+
+// 增加回车键发送消息
+input.addEventListener("keydown", (event) => {
+  let code = event.keyCode;
+  if (code === 13) {
+    handleSend();
   }
 })
