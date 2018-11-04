@@ -9,6 +9,7 @@ socket.on('connect', () => {
   console.log('连接成功');
 })
 
+// 发送消息
 const handleSend = () => {
   let val = input.value;
   if (val) {
@@ -19,6 +20,23 @@ const handleSend = () => {
     alert("发送内容不能为空！")
   }
 }
+
+// 监听message事件来接收服务端发来的消息
+socket.on("message", (data) => {
+  console.log(data)
+  let li = document.createElement("li");
+  li.className = "li-group-item";
+  li.innerHTML = `
+  <p style="color: #ccc;">
+    <span class="user">${data.user}</span>
+    ${data.createAt}
+  </p>
+  <p class="content">${data.content}</p>
+  `;
+  list.appendChild(li);
+  // 将聊天区域的滚动条设置到最新内容的位置
+  list.scrollTop = list.scrollHeight;
+})
 
 sendBtn.addEventListener("click", handleSend);
 

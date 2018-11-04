@@ -68,8 +68,12 @@ io.on('connection', function (socket) {
   // 监听客户端发来的消息
   socket.on('message', function (msg) {
     console.log(`来自客户端的消息：${msg}`);   // 这个就是客户端发来的消息
-    // 来而不往非礼也，服务端也可以发消息给客户端
-    socket.send(`你好，客户端！`);
+    // io.emit()方法是向大厅和所有人房间内的人广播
+    io.emit('message', {
+      user: '系统',
+      content: msg,
+      createAt: new Date().toLocaleString()
+    });
   });
 });
 
