@@ -1,6 +1,9 @@
 let list = document.getElementById('list'),
   input = document.getElementById('input'),
-  sendBtn = document.getElementById('sendBtn');
+  sendBtn = document.getElementById('sendBtn'),
+  username = document.getElementById('username'),
+  usernameConfirmBtn = document.getElementById('usernameConfirmBtn'),
+  usernameVal = "";
 
 // index.js文件
 let socket = io();
@@ -9,8 +12,24 @@ socket.on('connect', () => {
   console.log('连接成功');
 })
 
+// 确定用户名
+usernameConfirmBtn.addEventListener("click", () => {
+  let val = username.value;
+  if (val) {
+    usernameVal = val;
+    $("#myModal").modal('hide');
+  } else {
+    alert("用户名不可为空！");
+  }
+})
+
 // 发送消息
 const handleSend = () => {
+  if (!usernameVal) {
+    $("#myModal").modal('show');
+    return;
+  }
+
   let val = input.value;
   if (val) {
     // socket.send(val);
