@@ -70,7 +70,7 @@ const SYSTEM = '系统';
 io.on('connection', function (socket) {
   // 监听客户端发来的消息
   socket.on('message', function (data) {
-    console.log(`来自客户端的消息：${data.msg}`);   // 这个就是客户端发来的消息
+    console.log(`来自客户端 ${data.username} 的消息：${data.msg}`);   // 这个就是客户端发来的消息
     if (username) {
       // io.emit()方法是向大厅和所有人房间内的人广播
       io.emit('message', {
@@ -78,20 +78,21 @@ io.on('connection', function (socket) {
         content: data.msg,
         createAt: new Date().toLocaleString()
       });
-    } else {
-      // 向除了自己的所有人广播，毕竟进没进入自己是知道的，没必要跟自己再说一遍
-      socket.broadcast.emit('message', {
-        user: SYSTEM,
-        content: `${username}加入了聊天！`,
-        createAt: new Date().toLocaleString()
-      });
     }
   });
 
-  socket.on('username', function (msg) {
-    username = msg;
+  socket.on('username', function (val) {
+    username = val;
+    // 向除了自己的所有人广播，毕竟进没进入自己是知道的，没必要跟自己再说一遍
+    socket.broadcast.emit('message', {
+      user: SYSTEM,
+      content: `${val}加入了聊天！`,
+      createAt: new Date().toLocaleString()
+    });
   });
 });
 
 // 这里要用server去监听端口，而非app.listen去监听(不然找不到socket.io.js文件)
-server.listen(3000)
+server.listen(3000, () => {
+  console.log("your app is successful running");
+})
