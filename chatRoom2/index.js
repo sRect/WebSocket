@@ -12,6 +12,16 @@ socket.on('connect', () => {
   console.log('连接成功');
 })
 
+// @某用户方法
+list.addEventListener("click", function (event) {
+  let target = event.target.nodeName.toLowerCase();
+  if (target === "li") {
+    let user = event.target.children[0].children[0].innerHTML;
+    input.value = `@${user} `;
+    input.focus();
+  }
+}, false)
+
 // 确定用户名
 usernameConfirmBtn.addEventListener("click", () => {
   let val = username.value;
