@@ -70,11 +70,7 @@ const SYSTEM = '系统';
 io.on('connection', function (socket) {
   // 监听客户端发来的消息
   socket.on('message', function (data) {
-<<<<<<< Updated upstream
-    console.log(`来自客户端 ${data.username} 的消息：${data.msg}`);   // 这个就是客户端发来的消息
-=======
     console.log(`来自客户端${data.username}的消息：${data.msg}`);   // 这个就是客户端发来的消息
->>>>>>> Stashed changes
     if (username) {
       // io.emit()方法是向大厅和所有人房间内的人广播
       io.emit('message', {
