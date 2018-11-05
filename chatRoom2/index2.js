@@ -79,7 +79,7 @@ class Child extends Parent {
 
   handleConfirmUsername() {
     parent.config.usernameConfirmBtn.addEventListener("click", () => {
-      super.setUsername()
+      super.setUsername();
     });
   }
 
@@ -99,12 +99,25 @@ class Child extends Parent {
     })
   }
 
+  // @某人
+  handleEmitSomeone() {
+    parent.config.list.addEventListener("click", function (event) {
+      let target = event.target.nodeName.toLowerCase();
+      if (target === "li") {
+        let user = event.target.children[0].children[0].innerHTML;
+        input.value = `@${user} `;
+        input.focus();
+      }
+    }, false)
+  }
+
   init() {
     this.initSocket();
     this.handleReceiveMessage();
     this.handleConfirmUsername();
     this.handleSendMsg();
     this.enterKeyDown();
+    this.handleEmitSomeone();
   }
 }
 
