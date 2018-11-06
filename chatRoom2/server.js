@@ -64,9 +64,15 @@ app.on('error', function (err) {
  * 使用socket.io
  */
 // 监听服务端和客户端的连接情况
-let currentUsername = "";
-let socketObj = {}; // 用来保存对应的socket，就是记录对方的socket实例
 const SYSTEM = '系统';
+let currentUsername = "";
+let userColorObj = {};
+let socketObj = {}; // 用来保存对应的socket，就是记录对方的socket实例
+let userColorArr = ['#00a1f4', '#0cc', '#f44336', '#795548', '#e91e63', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#ffc107', '#607d8b', '#ff9800', '#ff5722'];
+
+const sortArr = () => { // 打乱数组
+  return userColorArr.sort(() => Math.random() > 0.5);
+}
 
 io.on('connection', function (socket) {
   // 监听客户端发来的消息
@@ -74,6 +80,7 @@ io.on('connection', function (socket) {
     console.log(`来自客户端${data.username}的消息：${data.msg}`);   // 这个就是客户端发来的消息
     currentUsername = data.username;
     let private = data.msg.match(/@([^ ]+) (.+)/); // 正则判断消息是否为私聊专属
+    let color = userColorObj[data.username];
 
     if (private) { // 私聊消息
       let toUser = private[1]; // 私聊的用户，正则匹配的第一个分组
@@ -84,12 +91,14 @@ io.on('connection', function (socket) {
         // 向私聊的用户发消息
         toSocket.send({
           user: data.username,
+          color,
           content,
           createAt: new Date().toLocaleString()
         })
 
         socketObj[currentUsername].send({ // @别人的消息，同时也给自己也发一份
           user: data.username,
+          color,
           content: data.msg,
           createAt: new Date().toLocaleString()
         })
@@ -98,14 +107,18 @@ io.on('connection', function (socket) {
       // io.emit()方法是向大厅和所有人房间内的人广播
       io.emit('message', {
         user: data.username,
+        color,
         content: data.msg,
         createAt: new Date().toLocaleString()
       });
     }
   });
 
+  // 用户名
   socket.on('username', function (val) {
     currentUsername = val;
+    userColorObj[val] = sortArr()[5];
+    console.log(userColorObj)
     // 向除了自己的所有人广播，毕竟进没进入自己是知道的，没必要跟自己再说一遍
     socket.broadcast.emit('message', {
       user: SYSTEM,

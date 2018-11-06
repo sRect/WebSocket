@@ -48,10 +48,10 @@ class Parent {
       li.className = "li-group-item clearfix";
       li.innerHTML = `
         <p style="color: #ccc;" class="${data.user === this.usernameVal ? 'selfInfo' : ''}">
-          <span class="user">${data.user}</span>
+          <span class="user" style="${data.color !== undefined ? `color: ${data.color}` : ''}">${data.user}</span>
           ${data.createAt}
         </p>
-        <p class="content ${data.user === this.usernameVal ? 'selfInfo2' : ''}">${data.content}</p>
+        <p class="content ${data.user === this.usernameVal ? 'selfInfo2' : ''}" style="${data.color !== undefined ? `background: ${data.color}` : ''}">${data.content}</p>
       `;
       this.config.list.appendChild(li);
       // 将聊天区域的滚动条设置到最新内容的位置
