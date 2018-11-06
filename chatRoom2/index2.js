@@ -45,13 +45,13 @@ class Parent {
     this.socket.on("message", (data) => {
       console.log(data)
       let li = document.createElement("li");
-      li.className = "li-group-item";
+      li.className = "li-group-item clearfix";
       li.innerHTML = `
-        <p style="color: #ccc;">
+        <p style="color: #ccc;" class="${data.user === this.usernameVal ? 'selfInfo' : ''}">
           <span class="user">${data.user}</span>
           ${data.createAt}
         </p>
-        <p class="content">${data.content}</p>
+        <p class="content ${data.user === this.usernameVal ? 'selfInfo2' : ''}">${data.content}</p>
       `;
       this.config.list.appendChild(li);
       // 将聊天区域的滚动条设置到最新内容的位置

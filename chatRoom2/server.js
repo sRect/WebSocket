@@ -73,7 +73,6 @@ io.on('connection', function (socket) {
   socket.on('message', function (data) {
     console.log(`来自客户端${data.username}的消息：${data.msg}`);   // 这个就是客户端发来的消息
     currentUsername = data.username;
-    // if (username2) {
     let private = data.msg.match(/@([^ ]+) (.+)/); // 正则判断消息是否为私聊专属
 
     if (private) { // 私聊消息
@@ -103,11 +102,6 @@ io.on('connection', function (socket) {
         createAt: new Date().toLocaleString()
       });
     }
-    // } else {
-    //   // 把socketObj对象上对应的用户名赋为一个socket
-    //   // 如： socketObj = { '周杰伦': socket, '谢霆锋': socket }
-    //   socketObj[username2] = socket;
-    // }
   });
 
   socket.on('username', function (val) {
@@ -119,6 +113,8 @@ io.on('connection', function (socket) {
       createAt: new Date().toLocaleString()
     });
 
+    // 把socketObj对象上对应的用户名赋为一个socket
+    // 如： socketObj = { '周杰伦': socket, '谢霆锋': socket }
     socketObj[val] = socket;
   });
 });
