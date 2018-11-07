@@ -1,13 +1,17 @@
 class Parent {
   constructor() {
     this.socket = null; // socket实例
-    this.usernameVal = ""; // 当前用户名
+    this.usernameVal = null; // 当前用户名
     this.config = {
       list: document.getElementById('list'),
       input: document.getElementById('input'),
       sendBtn: document.getElementById('sendBtn'),
       username: document.getElementById('username'),
-      usernameConfirmBtn: document.getElementById('usernameConfirmBtn')
+      usernameConfirmBtn: document.getElementById('usernameConfirmBtn'),
+      joinRoomA: document.getElementById('joinRoomA'),
+      leaveRoomA: document.getElementById('leaveRoomA'),
+      joinRoomB: document.getElementById('joinRoomB'),
+      leaveRoomB: document.getElementById('leaveRoomB')
     }
   }
 
@@ -70,6 +74,42 @@ class Parent {
       alert("用户名不可为空！");
     }
   }
+
+  // 加入某战队聊天
+  handleJoinRoom(roomname, username = this.usernameVal) {
+    if (this.usernameVal === null) {
+      alert("请先输入您的昵称！")
+      return;
+    }
+    this.socket.emit('join', {
+      roomname,
+      username
+    });
+  }
+
+  // 是否已进入房间
+  handleHasJoinRoom() {
+    this.socket.on("joined", (room) => {
+      this.config.joinRoomA.style.display = 'none';
+      this.config.leaveRoomA.style.display = 'inline-block';
+    })
+  }
+
+  // 离开战队聊天
+  handleLeaveRoom(roomname, username = this.usernameVal) {
+    this.socket.emit('leave', {
+      roomname,
+      username
+    });
+  }
+
+  // 是否已离开战队聊天
+  handleHasleavedRoom() {
+    this.socket.on("leaved", (room) => {
+      this.config.joinRoomA.style.display = 'inline-block';
+      this.config.leaveRoomA.style.display = 'none';
+    })
+  }
 }
 
 class Child extends Parent {
@@ -111,6 +151,24 @@ class Child extends Parent {
     }, false)
   }
 
+  joinOrLeaveRoom() {
+    parent.config.joinRoomA.addEventListener("click", () => {
+      super.handleJoinRoom("roomA")
+    })
+
+    parent.config.leaveRoomA.addEventListener("click", () => {
+      super.handleLeaveRoom("roomA")
+    })
+
+    parent.config.joinRoomB.addEventListener("click", () => {
+      super.handleJoinRoom("roomB")
+    })
+
+    parent.config.leaveRoomB.addEventListener("click", () => {
+      super.handleLeaveRoom("roomB")
+    })
+  }
+
   init() {
     this.initSocket();
     this.handleReceiveMessage();
@@ -118,6 +176,9 @@ class Child extends Parent {
     this.handleSendMsg();
     this.enterKeyDown();
     this.handleEmitSomeone();
+    this.joinOrLeaveRoom();
+    this.handleHasJoinRoom();
+    this.handleHasleavedRoom();
   }
 }
 

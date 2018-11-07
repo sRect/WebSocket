@@ -69,6 +69,7 @@ let currentUsername = "";
 let userColorObj = {};
 let socketObj = {}; // 用来保存对应的socket，就是记录对方的socket实例
 let userColorArr = ['#00a1f4', '#0cc', '#f44336', '#795548', '#e91e63', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#ffc107', '#607d8b', '#ff9800', '#ff5722'];
+let rooms = [];
 
 const sortArr = () => { // 打乱数组
   return userColorArr.sort(() => Math.random() > 0.5);
@@ -130,6 +131,55 @@ io.on('connection', function (socket) {
     // 如： socketObj = { '周杰伦': socket, '谢霆锋': socket }
     socketObj[val] = socket;
   });
+
+  // 监听进入房间
+  socket.on('join', data => {
+    console.log(data)
+    let color = userColorObj[data.username];
+    let arr = rooms.filter((item, index) => {
+      if (item.username === data.username) {
+        return item;
+      }
+    });
+    // 判断一下用户是否进入了房间，如果没有就让其进入房间内
+    if (data.username && !arr.length) {
+      socket.join(data.roomname); // socket.join表示进入某个房间
+      rooms.push({
+        username: data.username,
+        roomname: data.roomname
+      });
+      socket.emit('joined', data.roomname); // 告诉前端，已经进入房间
+
+      socket.send({
+        user: SYSTEM,
+        color,
+        content: `你已加入${data.roomname}战队`,
+        createAt: new Date().toLocaleString()
+      });
+    }
+  })
+
+  // 监听离开房间
+  socket.on('leave', data => {
+    let color = userColorObj[data.username];
+    let arr = rooms.filter((item, index) => {
+      if (item.username === data.username) {
+        return { ...item, index };
+      }
+    });
+    if (data.username && arr.length || arr[0].roomname === data.username) {
+      socket.leave(data.roomname); // 离开该房间
+      rooms.splice(arr[0].index, 1); // 删掉用户在该房间
+      socket.emit('leaved', data.roomname); // 告诉前端，已经离开房间
+      // 通知一下自己
+      socket.send({
+        user: SYSTEM,
+        color,
+        content: `你已离开${data.roomname}战队`,
+        createAt: new Date().toLocaleString()
+      });
+    }
+  })
 });
 
 // 这里要用server去监听端口，而非app.listen去监听(不然找不到socket.io.js文件)
