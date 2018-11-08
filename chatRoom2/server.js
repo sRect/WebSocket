@@ -70,12 +70,31 @@ let userColorObj = {};
 let socketObj = {}; // 用来保存对应的socket，就是记录对方的socket实例
 let userColorArr = ['#00a1f4', '#0cc', '#f44336', '#795548', '#e91e63', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#ffc107', '#607d8b', '#ff9800', '#ff5722'];
 let rooms = [];
+let mySocket = {}
 
 const sortArr = () => { // 打乱数组
   return userColorArr.sort(() => Math.random() > 0.5);
 }
 
 io.on('connection', function (socket) {
+  mySocket[socket.id] = socket; // 这是所有连接到服务端的socket.id
+  // 用户名
+  socket.on('username', function (val) {
+    currentUsername = val;
+    userColorObj[val] = sortArr()[5];
+
+    // 向除了自己的所有人广播，毕竟进没进入自己是知道的，没必要跟自己再说一遍
+    socket.broadcast.emit('message', {
+      user: SYSTEM,
+      content: `${val}加入了聊天！`,
+      createAt: new Date().toLocaleString()
+    });
+
+    // 把socketObj对象上对应的用户名赋为一个socket
+    // 如： socketObj = { '周杰伦': socket, '谢霆锋': socket }
+    socketObj[val] = socket;
+  });
+
   // 监听客户端发来的消息
   socket.on('message', function (data) {
     console.log(`来自客户端${data.username}的消息：${data.msg}`);   // 这个就是客户端发来的消息
@@ -105,36 +124,70 @@ io.on('connection', function (socket) {
         })
       }
     } else { // 公聊消息
-      // io.emit()方法是向大厅和所有人房间内的人广播
-      io.emit('message', {
-        user: data.username,
-        color,
-        content: data.msg,
-        createAt: new Date().toLocaleString()
-      });
+      if (rooms.length) {
+        let flag = false;
+
+        rooms.forEach(item => {
+          if (item.username === data.username) {
+            flag = true;
+          }
+        })
+
+        if (flag) { // 群聊发送
+          rooms.forEach(item => {
+            mySocket[item.id].emit('message', {
+              user: data.username,
+              color,
+              content: data.msg,
+              createAt: new Date().toLocaleString()
+            })
+          })
+        } else {
+          io.emit('message', {
+            user: data.username,
+            color,
+            content: data.msg,
+            createAt: new Date().toLocaleString()
+          });
+        }
+
+        // rooms.forEach(item => {
+        //   // 取得进入房间内所对应的所有sockets的hash值，它便是拿到的socket.id
+        //   let roomSockets = io.sockets.adapter.rooms[item.id].sockets;
+        //   Object.keys(roomSockets).forEach(socketId => {
+        //     // 进行一个去重，在socketJson中只有对应唯一的socketId
+        //     if (!socketJson[socketId]) {
+        //       socketJson[socketId] = 1;
+        //     }
+        //   });
+        // })
+
+        // console.log(socketJson)
+        // Object.keys(socketJson).forEach(socketId => {
+        //   mySocket[socketId].emit('message', {
+        //     user: data.username,
+        //     color,
+        //     content: data.msg,
+        //     createAt: new Date().toLocaleString()
+        //   });
+        // });
+      } else { // 非群聊消息
+        // io.emit()方法是向大厅和所有人房间内的人广播
+        io.emit('message', {
+          user: data.username,
+          color,
+          content: data.msg,
+          createAt: new Date().toLocaleString()
+        });
+      }
+
+      console.log(`rooms: ${JSON.stringify(rooms)}`)
     }
-  });
-
-  // 用户名
-  socket.on('username', function (val) {
-    currentUsername = val;
-    userColorObj[val] = sortArr()[5];
-    console.log(userColorObj)
-    // 向除了自己的所有人广播，毕竟进没进入自己是知道的，没必要跟自己再说一遍
-    socket.broadcast.emit('message', {
-      user: SYSTEM,
-      content: `${val}加入了聊天！`,
-      createAt: new Date().toLocaleString()
-    });
-
-    // 把socketObj对象上对应的用户名赋为一个socket
-    // 如： socketObj = { '周杰伦': socket, '谢霆锋': socket }
-    socketObj[val] = socket;
   });
 
   // 监听进入房间
   socket.on('join', data => {
-    console.log(data)
+
     let color = userColorObj[data.username];
     let arr = rooms.filter((item, index) => {
       if (item.username === data.username) {
@@ -146,7 +199,8 @@ io.on('connection', function (socket) {
       socket.join(data.roomname); // socket.join表示进入某个房间
       rooms.push({
         username: data.username,
-        roomname: data.roomname
+        roomname: data.roomname,
+        id: socket.id
       });
 
       socket.emit('joined', data.roomname); // 告诉前端，已经进入房间
