@@ -148,8 +148,9 @@ io.on('connection', function (socket) {
         username: data.username,
         roomname: data.roomname
       });
-      socket.emit('joined', data.roomname); // 告诉前端，已经进入房间
 
+      socket.emit('joined', data.roomname); // 告诉前端，已经进入房间
+      console.log(`rooms: ${JSON.stringify(rooms)}`)
       socket.send({
         user: SYSTEM,
         color,
@@ -162,14 +163,16 @@ io.on('connection', function (socket) {
   // 监听离开房间
   socket.on('leave', data => {
     let color = userColorObj[data.username];
-    let arr = rooms.filter((item, index) => {
-      if (item.username === data.username) {
-        return { ...item, index };
-      }
-    });
-    if (data.username && arr.length || arr[0].roomname === data.username) {
+    if (data.username && rooms.length) {
       socket.leave(data.roomname); // 离开该房间
-      rooms.splice(arr[0].index, 1); // 删掉用户在该房间
+      for (let i = 0, len = rooms.length; i < len; i++) {
+        if ((rooms[i].username === data.username) && (rooms[i].roomname === data.roomname)) {
+          rooms.splice(i, 1); // 删掉用户在该房间
+          break;
+        }
+      }
+
+      console.log(`rooms: ${JSON.stringify(rooms)}`)
       socket.emit('leaved', data.roomname); // 告诉前端，已经离开房间
       // 通知一下自己
       socket.send({
